@@ -1,0 +1,12 @@
+2 300 
+JimRice1975 100 
+RickyHenderson1983 150 
+3 200 
+HonusWagner1933 202 
+DerekJeter1996 120 
+JimRice1975 80
+3 20
+MikePiazza1999 450
+DwightGooden1986 10
+KeithHernandez1989 20
+

@@ -1,0 +1,188 @@
+package prj1;
+import java.util.*;
+import java.io.*;
+
+public class Program1 {
+    public static void main(String[] args) throws FileNotFoundException {
+	
+	//setting up reading information for market-price.txt
+	File mpFile = new File(args[1]);
+	Scanner scanner = new Scanner(mpFile);
+	int numCardsMarketPrice = scanner.nextInt();
+	//data structure for storing array of market cards
+	BaseballCard[] marketCards = new BaseballCard[numCardsMarketPrice];
+	
+	//Populate list of all cards in market-price.txt	
+	for(int i = 0; i < numCardsMarketPrice; i++) {
+	    String s = scanner.next();
+	    int n = scanner.nextInt();
+	    BaseballCard c = new BaseballCard(s, n);
+	    marketCards[i] = c;
+	    //System.out.println(c.toString());
+	}
+	
+	//setting up reading information for price-list.txt
+	File plFile = new File(args[3]);
+	Scanner scanner2 = new Scanner(plFile);
+	int numProblems = 0;
+	//find number of problems in price-list.txt
+	while(scanner2.hasNext()) {
+	    int sz = scanner2.nextInt();
+	    scanner2.nextLine();
+	    for(int j = 0; j < sz; j++) {
+		scanner2.nextLine();
+	    }
+	    numProblems++;
+	}
+
+	//Data structure to store array of cards in an array of problems
+	BaseballCard[][] priceListCards = new BaseballCard[numProblems][];
+	int[] problemWeights = new int[numProblems];
+	//populating double array initiated above
+	Scanner scanner3 = new Scanner(plFile);
+	for(int i = 0; i < numProblems; i++) {
+	    int sizeOfProblem = scanner3.nextInt();
+	    int weightOfProblem = scanner3.nextInt();
+	    scanner3.nextLine();
+	    BaseballCard[] temp = new BaseballCard[sizeOfProblem];
+	    for(int j = 0; j < sizeOfProblem; j++) {	
+		String s = scanner3.next();
+		int n = scanner3.nextInt();
+		BaseballCard c = new BaseballCard(s, n);
+		temp[j] = c;
+	    }
+	    priceListCards[i] = temp;
+	    problemWeights[i] = weightOfProblem;
+	}
+	System.out.println("");
+	//System.out.println("All cards in price list");
+	for(int i = 0; i < numProblems; i++) {
+	    //System.out.println("Problem " + (i+1) + " Cards:");
+	    for(int j = 0; j < priceListCards[i].length; j++) {
+		//System.out.println(priceListCards[i][j].toString());
+		boolean cond = isFound(priceListCards[i][j], marketCards);
+		if(!cond) {
+		    System.out.println(priceListCards[i][j].getName() + " was not found in the market price list. Program exiting...");
+		    System.exit(1);
+		}
+	    }
+	}
+	File output =  new File("prj1/output.txt");
+	try {
+	    FileWriter f = new FileWriter(output);
+	    PrintWriter p = new PrintWriter(f);
+	
+	    //System.out.println("PROBLEM OPTIMIZATIONS\n**********************************************");
+	    for(int i = 0; i < numProblems; i++) {
+	        //System.out.println("Problem " + (i+1) + ":");
+	        ProfitInfo pi = computeMaxProfit(priceListCards[i], problemWeights[i], marketCards);
+	        //System.out.println(pi.toString());
+	        p.println(pi.writeInfo());
+	    }
+	    p.close();
+	    f.close();
+	    System.out.println("Successfully wrote optimized profit data for each problem to file output.txt");
+	}
+	catch(IOException e) {
+	    System.out.println("IO ERROR");
+	}
+    }
+
+    public static boolean isFound(BaseballCard card, BaseballCard[] marketCards) {
+	for(int i = 0; i < marketCards.length; i++) {
+	    if(card.getName().equals(marketCards[i].getName())) {
+		return true;
+	    }
+	}
+	return false;
+    }
+
+    public static int findProfitArray(BaseballCard[] subset, BaseballCard[] marketCards) {
+	int totalProfit = 0;
+	for(int i = 0; i < marketCards.length; i++) {
+	    for(int j = 0; j < subset.length; j++) {
+		if(marketCards[i].getName().equals(subset[j].getName())) {
+		    totalProfit += (marketCards[i].getPrice() - subset[j].getPrice());
+		}
+	    }
+	}
+	return totalProfit;
+    }
+
+    public static int findProfitVector(Vector<BaseballCard> subset, BaseballCard[] marketCards) {
+	int totalProfit = 0;
+	for(int i = 0; i < marketCards.length; i++) {
+	    for(int j = 0; j < subset.size(); j++) {
+		if(marketCards[i].getName().equals(subset.get(j).getName())) {
+		    totalProfit += (marketCards[i].getPrice() - subset.get(j).getPrice());
+		}
+	    }
+	}
+	return totalProfit;
+    }
+
+    public static int sumWeightsArray(BaseballCard[] set) {
+	int sum = 0;
+	for(int i = 0; i < set.length; i++) {
+	    sum += set[i].getPrice();
+	}
+	return sum;
+    }
+    
+    public static int sumWeightsVector(Vector<BaseballCard> set) {
+	int sum = 0;
+	for(int i = 0; i < set.size(); i++) {
+	    sum += set.get(i).getPrice();
+	}
+	return sum;
+    }
+///use bitwise operations to generate powerset
+    public static ProfitInfo computeMaxProfit(BaseballCard[] inputSet, int weight, BaseballCard[] marketCards) {
+	long start = System.nanoTime();
+        
+	int maxProfit = 0;
+	Vector<BaseballCard> currentSet = new Vector<>();
+	Vector<BaseballCard> maxSet = new Vector<>();
+	int sumWeights = sumWeightsArray(inputSet);
+	int combinations = (int)Math.pow(2, inputSet.length);
+	if(sumWeights <= weight) {
+	    //converting array to vector to pass in
+	    for(int i = 0; i < inputSet.length; i++) {
+		currentSet.add(inputSet[i]);
+	    }
+	    //return profit of items in I and also I;
+	    maxProfit = findProfitVector(currentSet, marketCards);
+	    for(int k = 0; k < currentSet.size(); k++) {
+		maxSet.add(currentSet.get(k));
+	    }
+	    ProfitInfo info = new ProfitInfo(maxProfit, maxSet, inputSet.length); 
+	}
+	//iterate through number of combinations possible
+	for(int i = 0; i < combinations; i++) {
+	    //building subset
+	    for(int j = 0; j < inputSet.length; j++) {
+		if(((i>>j)&1) == 1) {
+		    currentSet.add(inputSet[j]);
+		}
+	    }
+	    sumWeights = sumWeightsVector(currentSet);
+	    if(sumWeights <= weight) {
+		int profit = findProfitVector(currentSet, marketCards);
+		if(profit > maxProfit) {
+		    maxSet.clear();
+		    for(int k = 0; k < currentSet.size(); k++) {
+			maxSet.add(currentSet.get(k));
+		    }
+		    maxProfit = profit;
+		}
+	    }
+	    currentSet.clear();
+	}
+	ProfitInfo info = new ProfitInfo(maxProfit, maxSet, inputSet.length);
+	long finish = System.nanoTime();
+        long elapsed = finish - start;
+	double seconds = elapsed/1000000000.0;
+	info.setTime(seconds);
+	return info;
+    }
+}
