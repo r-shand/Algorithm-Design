@@ -37,8 +37,13 @@ public class ProfitInfo {
     }
 
     public String writeInfo() {
-	return this.inputLength + " " + this.maxProfit + " " + this.maxSet.size() + " " + this.time;
-	//return "Input Length: " + this.inputLength + " | Max Profit: " + this.maxProfit + " | Max Profit Set Length: " + this.maxSet.size() + " | Execution Time: " + this.time;
+	String wi = "";
+	wi += this.inputLength + " " + this.maxProfit + " " + this.maxSet.size() + " " + this.time;
+	for(int i = 0; i < maxSet.size(); i++) {
+	    wi += "\n";
+	    wi += maxSet.get(i).toString();
+	}
+	return wi;
     }
     
     public String toString() {

@@ -1,3 +1,8 @@
-2 2750 2 1.44317E-4
-3 1100 2 6.6538E-5
-3 190 1 2.889E-5
+2 2750 2 2.21812E-4
+Name: JimRice1975 | Price: 100
+Name: RickyHenderson1983 | Price: 150
+3 1100 2 8.6602E-5
+Name: DerekJeter1996 | Price: 120
+Name: JimRice1975 | Price: 80
+3 190 1 2.7888E-5
+Name: DwightGooden1986 | Price: 10
