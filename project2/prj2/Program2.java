@@ -1,0 +1,78 @@
+package prj2;
+import java.util.*;
+import java.io.*;
+
+public class Program2 {
+	public static void main(String[] args) throws FileNotFoundException {
+	        File inputFile = new File(args[0]);
+		Scanner scanner = new Scanner(inputFile);
+		File outputFile = new File("prj2/" + args[1]);
+		try {
+		    FileWriter f = new FileWriter(outputFile);
+		    PrintWriter p = new PrintWriter(f);
+		    int maxSize = scanner.nextInt();
+		    MinHeap contestants = new MinHeap(maxSize);
+		    scanner.nextLine();
+		    while(scanner.hasNext()) {
+			String op = scanner.nextLine();
+			p.println(op);
+			if(op.contains("findContestant")) {
+			    int indexOpenBracket = op.indexOf("<");
+			    int indexClosedBracket = op.indexOf(">");
+			    int ID = Integer.parseInt(op.substring(indexOpenBracket+1, indexClosedBracket));
+			    p.println(contestants.findContestant(ID));
+			}
+			if(op.contains("insertContestant")) {
+			    int indexFirstOpenBracket = op.indexOf("<");
+			    int indexFirstClosedBracket = op.indexOf(">");
+			    int indexSecondOpenBracket = op.indexOf("<", indexFirstClosedBracket);
+			    int indexSecondClosedBracket = op.indexOf(">", indexSecondOpenBracket);
+			    int ID = Integer.parseInt(op.substring(indexFirstOpenBracket+1, indexFirstClosedBracket));
+			    int score = Integer.parseInt(op.substring(indexSecondOpenBracket+1, indexSecondClosedBracket));
+			    p.println(contestants.insert(ID, score));
+			}
+			if(op.contains("eliminateWeakest")) {
+			    contestants.eliminateWeakest();
+			}
+			if(op.contains("earnPoints")) {
+			    int indexFirstOpenBracket = op.indexOf("<");
+			    int indexFirstClosedBracket = op.indexOf(">");
+			    int indexSecondOpenBracket = op.indexOf("<", indexFirstClosedBracket);
+			    int indexSecondClosedBracket = op.indexOf(">", indexSecondOpenBracket);
+			    int ID = Integer.parseInt(op.substring(indexFirstOpenBracket+1, indexFirstClosedBracket));
+			    int points = Integer.parseInt(op.substring(indexSecondOpenBracket+1, indexSecondClosedBracket));
+			    p.println(contestants.earnPoints(ID, points));
+			}
+			if(op.contains("losePoints")) {
+			    int indexFirstOpenBracket = op.indexOf("<");
+			    int indexFirstClosedBracket = op.indexOf(">");
+			    int indexSecondOpenBracket = op.indexOf("<", indexFirstClosedBracket);
+			    int indexSecondClosedBracket = op.indexOf(">", indexSecondOpenBracket);
+			    int ID = Integer.parseInt(op.substring(indexFirstOpenBracket+1, indexFirstClosedBracket));
+			    int points = Integer.parseInt(op.substring(indexSecondOpenBracket+1, indexSecondClosedBracket));
+			    p.println(contestants.losePoints(ID, points));
+			}
+			if(op.contains("showContestants")) {
+			    p.println(contestants.showContestants());
+			}
+			if(op.contains("showHandles")) {
+			    p.println(contestants.showHandles());
+			}
+			if(op.contains("showLocation")) {
+			    int indexOpenBracket = op.indexOf("<");
+			    int indexClosedBracket = op.indexOf(">");
+			    int ID = Integer.parseInt(op.substring(indexOpenBracket+1, indexClosedBracket));
+			    p.println(contestants.showLocation(ID));
+			}
+			if(op.contains("crownWinner")) {
+			    p.println(contestants.crownWinner());
+			}
+		    }
+		    p.close();
+		    f.close();
+		}
+		catch(IOException e) {
+		    System.out.println("IO ERROR");
+		}
+	}
+}

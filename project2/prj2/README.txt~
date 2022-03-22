@@ -1,0 +1,11 @@
+Language: Java
+
+Files: Program2.java, MinHeap.java, Contestant.java, input1.txt, output.txt
+
+Execution:
+Please compile the program with the command: javac prj2/*.java
+Please run the program with the command: java prj2/Program2.java 'input1.txt' 'output.txt'
+Please make sure to compile and run the program 2 directory up from where the files are located, or the program will not work.
+
+please email me at rshand1@binghamton.edu if there are any issues trying to run this program
+Thank you!
