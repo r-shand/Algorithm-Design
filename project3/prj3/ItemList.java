@@ -1,0 +1,236 @@
+package prj3;
+import java.util.*;
+import java.io.*;
+
+public class ItemList {
+    //initial order
+    private Item IL[];
+    //for reordering -- greedy algs
+    private Item CL[];
+    //for reordering -- backtracking alg
+    private Item CL2[];
+    //for backtracking, same as IL but with one extra space. first node empty
+    private Item BL[];
+    //include items (yes or no vals)
+    private String include[];
+    //bestSetArr -- optimal set for include
+    private String bestSetArr[];
+    //number of items in this problem
+    private int size;
+    private int itemIndex;
+    private int capacity;
+    //profit of optimal set-- for greedy algs
+    private int bestSetProfit;
+    //profit of optimal set-- for backtracking
+    private int maxProfit;
+    //number of items considered
+    private int numbest;
+    //optimal set -- only used in greedy algs
+    private Vector<Item> bestSet;
+    //optimal set -- used in backtracking
+    private double seconds;
+    
+	
+    public ItemList(int size, int cap) {
+        this.IL = new Item[size];
+	this.CL = new Item[size];
+        this.CL2 = new Item[size+1];
+	this.BL = new Item[size+1];
+	this.BL[0] = new Item(0,0);
+	this.CL2[0] =  new Item(0,0);
+	this.include = new String[size+1];
+	this.bestSetArr = new String[size+1];
+	//init bestSet and include stuff
+	/*for(int i = 0; i < size+1; i++) {
+	    this.include[i] = "no";
+	    this.bestSetArr[i] = "no";
+	}*/
+	this.include[0] = "no";
+	this.bestSetArr[0] = "no";
+	
+	this.size = size;
+	this.capacity = cap;
+	this.itemIndex = 0;
+	this.bestSet = new Vector<Item>();
+	this.maxProfit = 0;
+	this.bestSetProfit = 0;
+	this.numbest = 0;
+	this.seconds = 0.0;
+    }
+	
+    public void addItem(Item i) {
+	this.IL[itemIndex] = i;
+	this.BL[itemIndex+1] = i;
+	itemIndex++;
+    }
+
+    public void sortArr() {
+	//really slow but whatever
+	double temp[] = new double[size];
+	for(int i = 0; i < size; i ++) {
+	    temp[i] = this.IL[i].getProfitPerWeight();
+	}
+        Arrays.sort(temp);
+	//this.CL = this.IL.clone();
+	for(int i = size-1; i >= 0; i--) {
+	    for(int j = 0; j < size; j++) {
+		if(temp[i] == IL[j].getProfitPerWeight()) {
+		    CL[(size-1)-i] = IL[j];
+		    CL2[(size)-i] = IL[j];
+		}
+	    }
+	}
+    }
+	
+    public void greedy1() {
+	long start0 = System.nanoTime();
+        sortArr();
+	int remCap = this.capacity;	
+	for(int i = 0; i < size; i++) {
+	    if(this.CL[i].getWeight() <= remCap) {
+		this.bestSet.add(this.CL[i]);
+		this.bestSetProfit += this.CL[i].getProfit();
+		remCap = remCap - this.CL[i].getWeight();
+	    }
+	}
+	this.maxProfit = this.bestSetProfit;
+	long finish0 = System.nanoTime();
+	long elapsed0 = finish0 - start0;
+        this.seconds = elapsed0/1000000000.0;
+    }
+    
+    public void greedy2() {
+	long start1 = System.nanoTime();
+	this.bestSetProfit = 0;
+	this.maxProfit = 0;
+	int pmax = 0;
+	int pmaxItemIndex = 0;
+	for(int i = 0; i < size; i++) {
+	    if(this.IL[i].getWeight() <= this.capacity && this.IL[i].getProfit() > pmax) {
+		pmax = this.IL[i].getProfit();
+		pmaxItemIndex = i;
+	    }
+	}
+	greedy1();
+	if(this.bestSetProfit < pmax) {
+	    bestSet.clear();
+	    this.bestSet.add(IL[pmaxItemIndex]);
+	    this.bestSetProfit = pmax;
+	}
+	this.maxProfit = this.bestSetProfit;
+	long finish1 = System.nanoTime();
+	long elapsed1 = finish1 - start1;
+        this.seconds = elapsed1/1000000000.0;
+    }
+
+    public void backtracking() {
+	long start2 = System.nanoTime();
+	greedy2();
+	
+        for(int x = 1; x < size+1; x++) {
+	    if(this.bestSet.contains(BL[x])) {
+		this.include[x] = "yes";
+		this.bestSetArr[x] = "yes";
+		this.numbest++;
+	    }
+	    else {
+	        this.include[x] = "no";
+	        this.bestSetArr[x] = "no";
+	    }
+	}
+	knapsack(0,0,0);
+	for(int x = 1; x <= this.numbest; x++) {
+	    if(bestSetArr[x].equals("yes")) {
+		this.bestSet.add(CL2[x]);
+	    }
+	}
+	long finish2 = System.nanoTime();
+	long elapsed2 = finish2 - start2;
+        this.seconds = elapsed2/1000000000.0;
+    }
+    
+    public void knapsack(int i, int profit, int weight) {
+	//System.out.println("profit: " + Integer.toString(profit) + " | weight: " + Integer.toString(weight));
+	if(weight <= this.capacity && profit > this.maxProfit) {
+	    this.maxProfit = profit;
+	    this.numbest = i;
+	    for(int j = 0; j < size+1; j++) {
+		this.bestSetArr[i] = this.include[i];
+	    }
+	}
+	if(promising(i)) {
+	    this.include[i+1] = "yes";
+	    knapsack(i+1, profit + CL2[i+1].getProfit(), weight + CL2[i+1].getWeight());
+	    this.include[i+1] = "no";
+	    knapsack(i+1, profit, weight);
+	}
+    }
+
+    public boolean promising(int i) {
+	if(CL2[i].getWeight() >= this.capacity) return false;
+	int bound = KWF2(i+1, CL2[i].getWeight(), CL2[i].getProfit());
+	return bound > this.maxProfit;
+    }
+    
+    public int KWF2(int i, int weight, int profit) {
+	int bound = profit;
+	int x[] = new int[size+1];
+	for(int j = i; j < this.size+1; j++) {
+	    x[j] = 0;
+	}
+	while(weight < this.capacity && i < this.size+1) {
+	    if(weight + CL2[i].getWeight() <= this.capacity) {
+		x[i] = 1;
+		weight = weight + CL2[i].getWeight();
+		bound = bound + CL2[i].getProfit();
+	    }
+	    else {
+		x[i] = (this.capacity - weight) / CL2[i].getWeight();
+		weight = this.capacity;
+		bound = bound + CL2[i].getProfit() * x[i];
+	    }
+	    i = i + 1;
+	}
+	return bound;
+    }
+
+    public String toStringBestSet() {
+	String s = "";
+	int totalProfit = 0;
+	System.out.println("**Optimal Set** Size: " + Integer.toString(this.bestSet.size()) + " | Execution Time: " + Double.toString(this.seconds) + " seconds");
+	for(int i = 1; i < size+1; i++) {
+	    if(this.bestSet.contains(this.BL[i])) {
+	        totalProfit += this.BL[i].getProfit();
+	        s += "Item " + Integer.toString(i) + " | ";
+	        s += "Weight: " + Integer.toString(this.BL[i].getWeight()) + ", ";
+	        s += "Profit: " + Integer.toString(this.BL[i].getProfit()) + ", ";
+	        s += "Profit per Weight: " + Double.toString(this.BL[i].getProfitPerWeight()) + "\n";
+	    }
+	}
+	s += "Profit for best set: " + Integer.toString(totalProfit) + "\n";
+	return s;
+    }
+	
+    public String toString() {
+	String s = "";
+	for(int i = 1; i < this.size+1; i++) {
+	    s += "Item " + Integer.toString(i) + " | ";
+	    s += "Weight: " + Integer.toString(BL[i].getWeight()) + ", ";
+	    s += "Profit: " + Integer.toString(BL[i].getProfit()) + ", ";
+	    s += "Profit per Weight: " + Double.toString(BL[i].getProfitPerWeight()) + "\n";
+	}
+	return s;
+    }
+
+    public String outputStr() {
+	String s = "";
+	s += Integer.toString(this.size) + " " + Integer.toString(this.maxProfit) + " " + Double.toString(this.seconds) + " ";
+	for(int i = 1; i < this.size+1; i++) {
+	    if(this.bestSet.contains(BL[i])) {
+		s += Integer.toString(i) + " ";
+	    }
+	}
+	s += "\n";
+	return s;
+    }
+}
